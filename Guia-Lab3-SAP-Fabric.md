@@ -5,7 +5,7 @@ Neste laboratório você cria um **Data Agent** (Agente de Dados) sobre o modelo
 
 > **Como ler os prints:** cada ação está marcada com um **círculo vermelho** e um **número** (1, 2, 3…) que corresponde à ordem do clique dentro daquele passo. **Caixas vermelhas** destacam campos a preencher ou resultados a conferir.
 
-> 🚧 **Status dos prints.** A seção **1.1** tem print real, capturado no `hack_sap`. Os demais pontos estão marcados com **`[print pendente]`** — o passo a passo em texto está completo.
+> 🚧 **Status dos prints.** As seções **1.1 a 1.3** têm prints reais, capturados no `hack_sap`. Da **1.5 em diante** os pontos estão marcados com **`[print pendente]`** — o passo a passo em texto está completo.
 
 ---
 
@@ -61,9 +61,9 @@ No painel *New item*: **1** troque para a aba **All items** (o card **não** apa
 
 ### 1.2 — Nomear e criar
 
-Abre o diálogo **Create data agent** com um único campo, **Input a data agent name**. Digite o nome e clique em **Create**.
+Abre o diálogo **Create data agent** com um único campo. **1** Digite o nome em **Input a data agent name**. **2** Clique em **Create** — ele só habilita depois que há texto no campo.
 
-`[print pendente]`
+![Create data agent com o nome preenchido](imagens/lab3-02.png)
 
 | Campo | Valor |
 |---|---|
@@ -73,13 +73,52 @@ Abre o diálogo **Create data agent** com um único campo, **Input a data agent 
 >
 > ⚠️ Se você clicou **New item** na raiz do workspace em vez de dentro da pasta, o agente nasce na raiz. Corrija depois com **⋯ → Move to → 005 Agente** na lista do workspace.
 
-### 1.3 — Ligar ao modelo semântico
+### 1.3 — Conhecer o editor do agente
 
-Com o agente criado, o editor abre pedindo a **fonte de dados**. Escolha **Semantic model** e selecione o **`mdl_sap_despesas`**.
+Depois do **Create**, o editor abre em **Build your data agent**. Vale se orientar antes de clicar:
 
-`[print pendente]`
+![Editor do agente — Build your data agent](imagens/lab3-03.png)
 
-### 1.4 — Selecionar tabelas e medidas
+**1** O nome do agente no topo. **2** O painel **Explorer**, com as abas **Data**, **Setup** e **Tools** — ainda em *"No data added"*. **3** Os três cartões de partida: **Add a data source**, **Extend functionality** e **Enable AI Search**. **4** O botão **Agent instructions**, que fica **desabilitado** até existir fonte de dados. **5** O selo **Draft** e o **Share**, no canto superior direito.
+
+| Elemento | Para quê |
+|---|---|
+| **Add data** / **Add a data source** | escolher a fonte — é o próximo passo |
+| **Add tools** | funções e ferramentas extras (não necessário neste lab) |
+| **Build agent with AI** | assistente que monta o agente conversando |
+| **Test data agent** | painel de conversa para testar antes de publicar |
+| **Agent instructions** | o prompt de sistema da seção 2 |
+| **Runtime** | `Standard` ou `Preview` |
+| **Draft** | estado de publicação — vira publicado na seção 3 |
+
+> ⚠️ **Ordem obrigatória: fonte de dados antes das instruções.** O botão **Agent instructions** aparece esmaecido enquanto o Explorer diz *"No data added"*. Não dá para escrever as instruções primeiro.
+>
+> 💡 **Sobre o Runtime:** o Fabric oferece um **Preview runtime** com a promessa de *"better response formatting, improved data source routing, and stronger support for large schemas"*. Para um modelo pequeno como o nosso o `Standard` dá conta; se as respostas vierem mal formatadas ou o agente errar a fonte, experimente o `Preview`.
+>
+> ℹ️ **`Draft` é o estado inicial e importa.** Enquanto estiver como *Draft*, o agente existe só para você. A seção 3 é o que o torna consumível pelos outros.
+
+### 1.4 — Ligar ao modelo semântico
+
+Clique em **Add a data source** (ou **Add data** na faixa). Abre o seletor **Add a data source**, que é o **OneLake catalog**: **1** use a busca para filtrar (digitar `mdl` já basta). **2** Selecione a linha do **`mdl_sap_despesas`**, com *Type* = **Semantic model**. **3** Clique em **Add**.
+
+![Add a data source — OneLake catalog com o mdl_sap_despesas](imagens/lab3-04.png)
+
+**4** Repare que o seletor é o **OneLake catalog**, não uma lista do workspace: ele varre todos os itens a que você tem acesso, com as abas **All**, **My data**, **Endorsed in your org** e **Favorites**, além de filtro por **domínio**.
+
+| Coluna | O que conferir |
+|---|---|
+| **Name** | `mdl_sap_despesas` — o modelo do Lab 2, não o `Modelo Despesas` que já existia |
+| **Type** | **Semantic model** (é isso que garante o acesso às medidas) |
+| **Owner** | seu usuário |
+| **Refreshed** | data/hora da última atualização do modelo |
+
+> ⚠️ **Cuidado ao escolher.** O `hack_sap` tem **dois** modelos semânticos: o **`mdl_sap_despesas`** do Lab 2 e um **`Modelo Despesas`** anterior, de outra pessoa. Filtrar por `mdl` resolve, porque só o do Lab 2 tem esse prefixo. Escolher o errado faz o agente responder sobre um modelo que você não curou.
+>
+> 💡 **A coluna `Type` é a sua confirmação.** Como o catálogo mostra lakehouses, warehouses e modelos juntos, é o `Type = Semantic model` que garante que você está pegando a camada com as medidas, e não o lakehouse cru. Se aparecer `Lakehouse`, é o `lh_sap_gold` — não é o que queremos aqui (veja a comparação no início deste guia).
+>
+> ℹ️ Dá para selecionar **mais de uma fonte**. Para este laboratório, só o modelo semântico basta.
+
+### 1.5 — Selecionar tabelas e medidas
 
 O agente só consulta o que você liberar. Seleção recomendada:
 
@@ -273,8 +312,9 @@ Pergunte no canal e **compare com a fonte**. É esta validação que fecha o lab
 | # | Tela | Situação |
 |---|---|---|
 | 1 | **New item → All items → Analyze and train data → Data agent** | ✅ `lab3-01.png` |
-| 2 | Diálogo **Create data agent** com o nome preenchido | pendente |
-| 3 | Escolha da fonte de dados → **Semantic model** → `mdl_sap_despesas` | pendente |
+| 2 | Diálogo **Create data agent** com o nome preenchido | ✅ `lab3-02.png` |
+| 3 | Editor do agente — **Build your data agent** | ✅ `lab3-03.png` |
+| 3b | **Add a data source** → OneLake catalog → `mdl_sap_despesas` | ✅ `lab3-04.png` |
 | 4 | Seleção de tabelas e medidas liberadas ao agente | pendente |
 | 5 | Painel de **instruções** do agente preenchido | pendente |
 | 6 | Teste no painel de conversa, com resposta correta | pendente |
@@ -291,7 +331,7 @@ Pergunte no canal e **compare com a fonte**. É esta validação que fecha o lab
 | Item | Onde | Situação |
 |---|---|---|
 | Recurso **Data agent** | tenant | ✅ disponível em *Analyze and train data* |
-| `agt_sap_despesas` | `hack_sap` / `005 Agente` | ⏳ a criar — diálogo *Create data agent* é o próximo passo |
+| `agt_sap_despesas` | `hack_sap` (raiz) | ✅ **criado**, estado `Draft`, ainda sem fonte de dados. Mover para `005 Agente` com **⋯ → Move to** |
 | Instruções, publicação e Teams | — | ⏳ pendente (seções 2 a 4) |
 
 *Documento gerado para a equipe do hackathon — Lab 3.*
