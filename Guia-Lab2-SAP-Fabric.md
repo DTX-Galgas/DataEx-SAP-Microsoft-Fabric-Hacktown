@@ -447,15 +447,77 @@ Coloque `Total Despesas` e `Qtd Lançamentos` em dois cartões no relatório. Os
 >
 > ⚠️ Se `Total Despesas AA` voltar em branco, quase sempre é a `dim_calendario` **não marcada como tabela de data** (passo 1.3) ou o calendário **não cobrindo o período da fato** — o notebook gera de 01/01/2026 até o fim do ano corrente.
 
-### 2.4 — Organizar em display folders
+### 2.4 — Uma tabela só para as medidas (`_medidas`)
+
+Por padrão toda medida nasce grudada numa tabela — as nossas foram para a `fato_despesas`. Isso mistura, no painel de campos, **colunas** (o que se arrasta para eixos e filtros) com **medidas** (o que se arrasta para valores). A prática consagrada é criar uma tabela **só de medidas**.
+
+**Por que vale a pena:**
+
+- As medidas ficam **num só lugar**, no topo da lista, em vez de espalhadas dentro das tabelas de dados.
+- Some a tentação de arrastar `fato_despesas[valor]` (a coluna crua) quando o certo é `Total Despesas` (a medida).
+- O nome com **underscore na frente** (`_medidas`) faz a tabela subir para o topo do painel, antes das dimensões.
+
+**O caminho passa pela aba Model do painel Data.** **1** No painel **Data**, à direita, troque da aba *Tables* para a aba **Model**. **2** Clique nos **três pontos** ao lado de **Tables**. **3** Escolha **New calculated table**. **4** De passagem, repare que a árvore mostra as contagens do modelo — aqui, `Measures (5)`, `Relationships (7)` e `Tables (9)`.
+
+![Aba Model → três pontos em Tables → New calculated table](imagens/lab2-16.png)
+
+> 💡 **A aba Model é o mapa do modelo.** Ela lista *Calculation groups*, *Cultures*, *Expressions*, *Functions*, *Measures*, *Perspectives*, *Relationships*, *Roles* e *Tables*, cada um com a contagem ao lado. É a forma mais rápida de responder "quantas medidas eu já tenho?" e "os 7 relacionamentos estão todos lá?" sem abrir diálogo nenhum.
+
+**Passo a passo:**
+
+1. Aba **Model** → **⋯** em *Tables* → **New calculated table**.
+2. No editor de DAX, crie uma tabela de uma linha só:
+
+   ```dax
+   _medidas = ROW("placeholder", BLANK())
+   ```
+
+3. Confirme. A tabela `_medidas` aparece no painel com uma coluna `placeholder`.
+4. Selecione a coluna `placeholder` e marque **Is hidden = Yes**. Ela existe só para a tabela poder existir; ninguém deve vê-la.
+5. Agora mova cada medida: selecione a medida no painel **Data** e, no painel **Properties**, troque o campo **Home table** de `fato_despesas` para **`_medidas`**.
+6. Repita para as cinco medidas.
+
+Resultado: **1** o campo **Home table** da medida selecionada aponta para `_medidas`. **2** No painel **Data**, a `_medidas` agora concentra as cinco medidas — e sobe para o topo da lista, antes das dimensões, por causa do `_`. **3** No diagrama, a `_medidas` aparece como um card só de medidas. **4** A barra de fórmula mostra o DAX da medida selecionada.
+
+![Medidas movidas para a tabela _medidas, com o campo Home table](imagens/lab2-17.png)
+
+As cinco medidas do modelo de referência, com os nomes que o Copilot gerou:
+
+| Medida | Pasta sugerida |
+|---|---|
+| `Total Despesas` | `01 Valores` |
+| `Despesa Média por Lançamento` | `01 Valores` |
+| `Qtd Lançamentos` | `02 Contagens` |
+| `Total Despesas Ano Anterior` | `03 Comparativos` |
+| `Var % Total Despesas vs Ano Anterior` | `03 Comparativos` |
+
+E o DAX que o Copilot escreveu para a variação — vale reparar na qualidade:
+
+```dax
+Var % Total Despesas vs Ano Anterior =
+VAR _Atual = [Total Despesas]
+VAR _Anterior = [Total Despesas Ano Anterior]
+RETURN
+    DIVIDE ( _Atual - _Anterior, _Anterior )
+```
+
+> ✅ **Isso é DAX bem escrito.** Usa `VAR` para nomear as duas pontas em vez de repetir as medidas, referencia as outras medidas por `[Nome]` em vez de recalcular a soma, e fecha com `DIVIDE` em vez de `/`. É exatamente o que o checklist da seção 2.3 pede — e é um bom exemplo para mostrar à turma de que o Copilot, quando o prompt é específico, entrega código idiomático.
+
+> ⚠️ **Oculte a coluna `Column`.** A tabela calculada nasce com uma coluna (aqui chamada `Column`, com ícone de somatório) que é só andaime. Ela aparece no print ainda **visível** — selecione‑a e marque **Is hidden = Yes**, senão alguém vai arrastá‑la para um visual e somar nada.
+
+> ✅ **Direct Lake aceita tabela calculada.** O menu traz **New calculated table** habilitado — então o `_medidas` funciona sem precisar criar nada no lakehouse. Vale saber que é uma tabela **calculada**, avaliada pelo motor e não lida da Gold: é exatamente o que se quer aqui, já que ela não guarda dado nenhum.
+>
+> 💡 **O campo `Home table` é o que move a medida.** Ele aparece no painel *Properties* quando você seleciona uma medida — no momento da criação ele vem preenchido e travado com a tabela de origem, mas depois de criada a medida o campo fica editável. Mover a medida **não** muda o DAX nem quebra visual nenhum: a referência a uma medida em DAX é sempre `[Nome da Medida]`, sem o nome da tabela.
+
+### 2.5 — Organizar em display folders
 
 Selecione a medida → painel **Properties** → campo **Display folder**. Estrutura sugerida:
 
 | Display folder | Medidas |
 |---|---|
-| `01 Valores` | Total Despesas, Despesa Média |
-| `02 Contagens` | Qtd Lançamentos |
-| `03 Comparativos` | Total Despesas AA, Variação % AA |
+| `01 Valores` | `Total Despesas`, `Despesa Média por Lançamento` |
+| `02 Contagens` | `Qtd Lançamentos` |
+| `03 Comparativos` | `Total Despesas Ano Anterior`, `Var % Total Despesas vs Ano Anterior` |
 
 O prefixo numérico existe porque as pastas são ordenadas alfabeticamente. Sem ele, "Comparativos" aparece antes de "Valores".
 
@@ -625,7 +687,9 @@ Para compartilhar de fato, use **Manage access** no workspace ou publique um **A
 | 10 | Painel **Properties** da coluna `valor` com Format = Currency | ✅ `lab2-13.png` |
 | 11 | Tela de consentimento *Allow Copilot to make changes* | ✅ `lab2-14.png` |
 | 12 | Copilot devolvendo a medida DAX + formatação R$ | ✅ `lab2-15.png` |
-| 13 | **Display folders** organizadas no painel de campos | pendente |
+| 13 | Aba **Model** → ⋯ em *Tables* → **New calculated table** | ✅ `lab2-16.png` |
+| 13b | Tabela `_medidas` com as 5 medidas e o campo **Home table** | ✅ `lab2-17.png` |
+| 13c | **Display folders** organizadas no painel de campos | pendente |
 | 14 | Copilot sugerindo hierarquias / sinônimos | pendente |
 | 15 | Colunas `sk_*` ocultas no painel de campos | pendente |
 | 16 | Copilot gerando o rascunho do relatório | pendente |
@@ -644,7 +708,8 @@ Para compartilhar de fato, use **Manage access** no workspace ou publique um **A
 | Relacionamentos | `mdl_sap_despesas` | ✅ **7 de 7 criados**, todos Active, pares de coluna e cardinalidade conferidos |
 | `dim_calendario` como tabela de data | `mdl_sap_despesas` | ✅ marcada em `data_referencia`, *Validated successfully* |
 | Tipos, formatos e categorias | `mdl_sap_despesas` | 🟡 `valor` pronto: **Currency** + **Currency General** + decimais `Auto`. Faltam as demais colunas da tabela de 1.4 (datas, inteiros sem *Summarize*, `nome_mes` com *Sort by column*) |
-| Medidas | `mdl_sap_despesas` | 🟡 **`Total Despesas`** criada pelo Copilot: `SUM('fato_despesas'[valor])`, formatada em `R$`. Faltam Qtd Lançamentos, Despesa Média, Total AA e Variação % |
+| Medidas | `mdl_sap_despesas` | ✅ **5 medidas** no modelo (confirmado na aba *Model*: `Measures (5)`). A primeira, `Total Despesas` = `SUM('fato_despesas'[valor])`, formatada em `R$`, foi criada pelo Copilot |
+| Tabela `_medidas` | `mdl_sap_despesas` | ✅ criada e com as **5 medidas movidas**. Falta ocultar a coluna andaime `Column` |
 | Refino e relatório | — | ⏳ pendente (seções 3 e 4) |
 
 > ℹ️ Já existe também um **`Modelo Despesas`** na pasta `004 Modelo Semantico` do `hack_sap`, criado antes por outra pessoa. O `mdl_sap_despesas` é o do laboratório, do zero — não confunda os dois.
