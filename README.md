@@ -1,4 +1,4 @@
-# DataEx-SAP-Microsoft-Fabric-Hacktown
+# DataEx-SAP-Microsoft-Fabric-Hackathon
 
 Olá, pessoal.
 
