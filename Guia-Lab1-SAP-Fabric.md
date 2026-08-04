@@ -1,4 +1,5 @@
 # Guia passo a passo — Hackathon SAP → Microsoft Fabric
+
 ## Lab 1 — Pipeline de ingestão e transformação (Bronze → Silver → Gold)
 
 Este guia mostra, **clique a clique e com prints reais**, como construir o pipeline de ingestão de dados do SAP para o Microsoft Fabric seguindo a arquitetura **Medallion**, usando um padrão **orientado a metadados** (um único pipeline que lê a lista de entidades de um arquivo JSON e carrega **todas** de uma vez, com **Lookup + Filter + ForEach + Copy**), encadeando os notebooks de Silver e Gold e avisando no **Teams** se alguma etapa falhar.
@@ -10,7 +11,7 @@ Este guia mostra, **clique a clique e com prints reais**, como construir o pipel
 ## Arquitetura da solução
 
 ```
-                     mapeamento_entidades_sap.json   (lista de entidades da API)
+mapeamento_entidades_sap.json   (lista de entidades da API)
                                    │
 SAP S/4HANA (API OData/REST)       ▼
         └──────────►  Pipeline Fabric Data Factory
@@ -44,13 +45,13 @@ O **Lab 2** usa a camada Gold para o Modelo Semântico + relatórios via Copilot
 
 ### Conexão com o SAP (dados de teste do hackathon)
 
-| Item | Valor |
-|---|---|
+| Item                       | Valor                                                       |
+| -------------------------- | ----------------------------------------------------------- |
 | Base URL do serviço OData | `https://my415189-api.s4hana.cloud.sap/sap/opu/odata/sap` |
-| Autenticação | **Basic** |
-| Usuário | `HACKATON_2026` |
-| Senha | `#H4ckT0n_M1croS0ft_2026` |
-| Operações | **Somente GET** (leitura) |
+| Autenticação             | **Basic**                                             |
+| Usuário                   | `HACKATON_2026`                                           |
+| Senha                      | `#H4ckT0n_M1croS0ft_2026`                                 |
+| Operações                | **Somente GET** (leitura)                             |
 
 > ⚠️ **Atenção ao host da URL.** O arquivo `mapeamento_entidades_sap.json` (que o pipeline lê no loop) usa **`my415189`** em todas as 8 entidades. Instruções anteriores citavam `my415181`. **Use `my415189`** para manter a conexão consistente com o JSON. Se o ambiente do seu tenant usar outro host, ajuste apenas o campo *Base URL* da conexão.
 >
@@ -58,16 +59,16 @@ O **Lab 2** usa a camada Gold para o Modelo Semântico + relatórios via Copilot
 
 ### Entidades carregadas (conteúdo do `mapeamento_entidades_sap.json`)
 
-| # | Entidade | relativeUrl (serviço/entidade OData) | Tabela destino (Bronze) | `etl` |
-|---|---|---|---|---|
-| 1 | ACDOCA (Despesas) | `API_JOURNALENTRYITEMBASIC_SRV/A_JournalEntryItemBasic` | `dbo.lancamento_despesas` | Sim |
-| 2 | Conta Contabil | `API_GLACCOUNTINCHARTOFACCOUNTS_SRV/A_GLAccountText` | `dbo.conta_contabil` | Sim |
-| 3 | Segmento | `API_SEGMENT_SRV/A_Segment` | `dbo.segmento` | Sim |
-| 4 | Centro de Lucro | `API_PROFITCENTER_SRV/A_ProfitCenterText` | `dbo.centro_lucro` | Sim |
-| 5 | Centro de Custos | `API_COSTCENTER_SRV/A_CostCenterText` | `dbo.centro_custo` | Sim |
-| 6 | Cliente/Fornecedor | `API_BUSINESS_PARTNER/A_BusinessPartner` | `dbo.cliente_fornecedor` | Sim |
-| 7 | Empresa | `API_COMPANYCODE_SRV/A_CompanyCode` | `dbo.empresa` | Sim |
-| 8 | Planta | `API_PLANT_SRV/A_Plant` | `dbo.Planta` | **Não** |
+| # | Entidade           | relativeUrl (serviço/entidade OData)                     | Tabela destino (Bronze)     | `etl`        |
+| - | ------------------ | --------------------------------------------------------- | --------------------------- | -------------- |
+| 1 | ACDOCA (Despesas)  | `API_JOURNALENTRYITEMBASIC_SRV/A_JournalEntryItemBasic` | `dbo.lancamento_despesas` | Sim            |
+| 2 | Conta Contabil     | `API_GLACCOUNTINCHARTOFACCOUNTS_SRV/A_GLAccountText`    | `dbo.conta_contabil`      | Sim            |
+| 3 | Segmento           | `API_SEGMENT_SRV/A_Segment`                             | `dbo.segmento`            | Sim            |
+| 4 | Centro de Lucro    | `API_PROFITCENTER_SRV/A_ProfitCenterText`               | `dbo.centro_lucro`        | Sim            |
+| 5 | Centro de Custos   | `API_COSTCENTER_SRV/A_CostCenterText`                   | `dbo.centro_custo`        | Sim            |
+| 6 | Cliente/Fornecedor | `API_BUSINESS_PARTNER/A_BusinessPartner`                | `dbo.cliente_fornecedor`  | Sim            |
+| 7 | Empresa            | `API_COMPANYCODE_SRV/A_CompanyCode`                     | `dbo.empresa`             | Sim            |
+| 8 | Planta             | `API_PLANT_SRV/A_Plant`                                 | `dbo.Planta`              | **Não** |
 
 Cada item do JSON traz o seu próprio `base_url` (todos apontam para `https://my415189-api.s4hana.cloud.sap/sap/opu/odata/sap`) e `schema_destino = dbo`.
 
@@ -109,11 +110,11 @@ Cada item do JSON traz o seu próprio `base_url` (todos apontam para `https://my
 
 As três camadas Medallion são três Lakehouses:
 
-| Lakehouse | Camada | Conteúdo |
-|---|---|---|
-| `lh_sap_bronze` | Bronze | Dados crus, exatamente como vêm da API SAP |
-| `lh_sap_silver` | Silver | Dados limpos, deduplicados e com tipos corrigidos |
-| `lh_sap_gold` | Gold | Dados modelados em esquema estrela (fato + dimensões) |
+| Lakehouse         | Camada | Conteúdo                                              |
+| ----------------- | ------ | ------------------------------------------------------ |
+| `lh_sap_bronze` | Bronze | Dados crus, exatamente como vêm da API SAP            |
+| `lh_sap_silver` | Silver | Dados limpos, deduplicados e com tipos corrigidos      |
+| `lh_sap_gold`   | Gold   | Dados modelados em esquema estrela (fato + dimensões) |
 
 > **Convenção de nomenclatura das tabelas Bronze:** use os nomes de `tabela_destino` do JSON (ex.: `lancamento_despesas`, `conta_contabil`…), todos no schema `dbo`.
 
@@ -170,17 +171,17 @@ A conexão guarda a URL base e as credenciais do SAP e é **reutilizável** por 
 
 **❺ Preencher o formulário da conexão.** Ao selecionar **REST** o painel expande os campos. Os números da tabela são os mesmos marcados no print:
 
-| # | Campo | Valor |
-|---|---|---|
-| 1 | **Connection name** | `conn_sap_s4hana_rest` |
-| 2 | **Connection type** | `REST` (já selecionado no passo anterior) |
-| 3 | **URL Base** | `https://my415189-api.s4hana.cloud.sap/sap/opu/odata/sap` |
-| — | **URI da Audiência do Token** | *deixe em branco* |
-| 4 | **Authentication method** | `Basic` |
-| 5 | **Username** | `HACKATON_2026` |
-| 6 | **Password** | `#H4ckT0n_M1croS0ft_2026` *(digite você mesmo — não cole de e‑mail/chat, evita caractere invisível)* |
-| — | **Privacy level** (bloco *General*, abaixo) | `Organizational` (já vem selecionado) |
-| 7 | Botão **Create** | conclui a criação |
+| #  | Campo                                               | Valor                                                                                                         |
+| -- | --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| 1  | **Connection name**                           | `conn_sap_s4hana_rest`                                                                                      |
+| 2  | **Connection type**                           | `REST` (já selecionado no passo anterior)                                                                  |
+| 3  | **URL Base**                                  | `https://my415189-api.s4hana.cloud.sap/sap/opu/odata/sap`                                                   |
+| — | **URI da Audiência do Token**                | *deixe em branco*                                                                                           |
+| 4  | **Authentication method**                     | `Basic`                                                                                                     |
+| 5  | **Username**                                  | `HACKATON_2026`                                                                                             |
+| 6  | **Password**                                  | `#H4ckT0n_M1croS0ft_2026` *(digite você mesmo — não cole de e‑mail/chat, evita caractere invisível)* |
+| — | **Privacy level** (bloco *General*, abaixo) | `Organizational` (já vem selecionado)                                                                      |
+| 7  | Botão**Create**                              | conclui a criação                                                                                           |
 
 ![Formulário da conexão REST preenchido — campos 1 a 7 marcados](imagens/lab1-16.png)
 
@@ -272,11 +273,11 @@ VALOR_DESCONHECIDO_TEXTO = "N/A"
 
 Repare no encaixe entre os dois: o **`LAKEHOUSE_SILVER` do primeiro é o `LAKEHOUSE_SILVER` do segundo**. É esse nome em comum que faz a Gold ler exatamente o que a Silver acabou de gravar.
 
-| Se você… | Então… |
-|---|---|
-| criou os lakehouses com os nomes do Passo 2 a 4 (`lh_sap_bronze`, `lh_sap_silver`, `lh_sap_gold`) | **não precisa mudar nada** — os valores já batem |
-| usou outros nomes | troque as strings nas duas células, mantendo o nome da Silver idêntico nos dois notebooks |
-| criou os lakehouses **sem** o schema `dbo` | ajuste `SCHEMA_*`; o padrão do Fabric com schemas habilitados é `dbo` |
+| Se você…                                                                                              | Então…                                                                                    |
+| ------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| criou os lakehouses com os nomes do Passo 2 a 4 (`lh_sap_bronze`, `lh_sap_silver`, `lh_sap_gold`) | **não precisa mudar nada** — os valores já batem                                   |
+| usou outros nomes                                                                                       | troque as strings nas duas células, mantendo o nome da Silver idêntico nos dois notebooks |
+| criou os lakehouses**sem** o schema `dbo`                                                       | ajuste `SCHEMA_*`; o padrão do Fabric com schemas habilitados é `dbo`                 |
 
 > ⚠️ **O notebook precisa estar no mesmo workspace dos lakehouses.** O nome de três partes (`lh_sap_bronze.dbo.centro_custo`) resolve **dentro do workspace do notebook** — não atravessa workspaces. Se você importar os notebooks num workspace e os lakehouses estiverem em outro, a leitura falha com tabela não encontrada, mesmo com os nomes escritos corretamente.
 >
@@ -286,10 +287,10 @@ Repare no encaixe entre os dois: o **`LAKEHOUSE_SILVER` do primeiro é o `LAKEHO
 
 Anexar lakehouses faz as tabelas aparecerem no **Explorer**, o que ajuda a conferir nomes de coluna enquanto você desenvolve. Abra cada notebook e use **Add data items** / **Add lakehouses**:
 
-| Notebook | Lakehouses a anexar | Sugestão de default |
-|---|---|---|
-| `bronze_to_silver_dq` | `lh_sap_bronze` **e** `lh_sap_silver` | `lh_sap_bronze` |
-| `silver_to_gold_star_schema` | `lh_sap_silver` **e** `lh_sap_gold` | `lh_sap_silver` |
+| Notebook                       | Lakehouses a anexar                             | Sugestão de default |
+| ------------------------------ | ----------------------------------------------- | -------------------- |
+| `bronze_to_silver_dq`        | `lh_sap_bronze` **e** `lh_sap_silver` | `lh_sap_bronze`    |
+| `silver_to_gold_star_schema` | `lh_sap_silver` **e** `lh_sap_gold`   | `lh_sap_silver`    |
 
 > 🔎 **Na prática isso é opcional.** Os dois notebooks endereçam todas as tabelas pelo **nome completo de três partes** (`lh_sap_bronze.dbo.centro_custo`), que não depende de lakehouse anexado — e na implementação de referência (`hack_sap`) o Explorer mostra literalmente *"No data sources added"*. Anexar serve para você **navegar nas tabelas pelo Explorer** enquanto desenvolve. Passa a ser obrigatório se você trocar o código por caminhos relativos, do tipo `spark.table("centro_custo")`.
 
@@ -325,22 +326,24 @@ No workspace, clique em **+ New item** → aba **All items** → card **Data pip
 
 No editor, a faixa **Home** já traz **❷ Lookup** e **❸ Copy data**; a aba **❶ Activities** abre o catálogo completo — é de lá que saem o **Filter**, o **ForEach**, o **Notebook** e o **Microsoft Teams**.
 
+(ainda nao arraste nada para o pipeline)
+
 ![Editor do pipeline — Activities, Lookup e Copy data na faixa](imagens/lab1-23.png)
 
 Para **ligar duas atividades**, arraste a partir do conector no lado direito da atividade de origem até a atividade de destino. O conector **✓ verde** cria a dependência *On success*; o **✗ vermelho** cria *On failure*.
 
-Assim fica o canvas montado — este print é da implementação de referência (**pipeline `ppl_ingest_sap`**, no workspace **`hack_sap`**):
+Assim fica o canvas montado:
 
 ![Canvas do pipeline montado — Filter, ForEach, os dois Notebooks e o Teams](imagens/lab1-38.png)
 
-| # | Atividade no canvas | Tipo | Detalhe em |
-|---|---|---|---|
-| 1 | `Lista Origens` *(fora do enquadramento, à esquerda)* | Lookup | 7.5 |
-| 2 | `HabilitaETL` | Filter | 7.6 |
-| 3 | `Carga Bronze` (contém `Copy Entidades`) | ForEach | 7.7 |
-| 4 | `Load Bronze to Silver` | Notebook | 7.8 |
-| 5 | `Load Silver to Gold` | Notebook | 7.8 |
-| 6 | `MicrosoftTeams1` | Microsoft Teams | 7.9 |
+| # | Atividade no canvas                                        | Tipo            |
+| - | ---------------------------------------------------------- | --------------- |
+| 1 | `Lista Origens` *(fora do enquadramento, à esquerda)* | Lookup          |
+| 2 | `HabilitaETL`                                            | Filter          |
+| 3 | `Carga Bronze` (contém `Copy Entidades`)              | ForEach         |
+| 4 | `Load Bronze to Silver`                                  | Notebook        |
+| 5 | `Load Silver to Gold`                                    | Notebook        |
+| 6 | `MicrosoftTeams1 (Opcional)`                             | Microsoft Teams |
 
 Repare nos conectores: as setas **verdes** encadeiam 1→2→3→4→5, e as **vermelhas** saem de todas as etapas e convergem na atividade 6.
 
@@ -348,14 +351,14 @@ Repare nos conectores: as setas **verdes** encadeiam 1→2→3→4→5, e as **v
 
 Clique em **Lookup** na faixa; na aba **General**, renomeie para **`Lista Origens`**. Depois selecione a atividade e abra a aba **Settings**:
 
-| Campo | Valor |
-|---|---|
-| **Connection** | `lh_sap_bronze` (Lakehouse) |
-| **Root folder** | `Files` |
-| **File path type** | `File path` |
-| **File path** | `Config`  /  `mapeamento_entidades_sap.json` |
-| **File format** | `JSON` |
-| **First row only** | ☐ **DESMARCADO** *(essencial — sem isso volta só a primeira entidade)* |
+| Campo                    | Valor                                                                            |
+| ------------------------ | -------------------------------------------------------------------------------- |
+| **Connection**     | `lh_sap_bronze` (Lakehouse)                                                    |
+| **Root folder**    | `Files`                                                                        |
+| **File path type** | `File path`                                                                    |
+| **File path**      | `Config`  /  `mapeamento_entidades_sap.json`                                 |
+| **File format**    | `JSON`                                                                         |
+| **First row only** | ☐**DESMARCADO** *(essencial — sem isso volta só a primeira entidade)* |
 
 > Saída do Lookup: `@activity('Lista Origens').output.value` — o array com as 8 entidades do JSON.
 
@@ -363,10 +366,10 @@ Clique em **Lookup** na faixa; na aba **General**, renomeie para **`Lista Origen
 
 Adicione um **Filter** (aba *Activities*), ligue **Lista Origens** →(*On success*)→ **Filter** e renomeie para **`HabilitaETL`**. Na aba **Settings**:
 
-| Campo | Valor |
-|---|---|
-| **Items** | `@activity('Lista Origens').output.value` |
-| **Condition** | `@equals(item().etl, 'Sim')` |
+| Campo               | Valor                                       |
+| ------------------- | ------------------------------------------- |
+| **Items**     | `@activity('Lista Origens').output.value` |
+| **Condition** | `@equals(item().etl, 'Sim')`              |
 
 O Filter existe para que ligar ou desligar uma origem seja uma edição de **uma palavra no JSON**, sem tocar no pipeline. Com o JSON atual, ele devolve **7 itens** (a `Planta` está com `etl = "Não"`).
 
@@ -376,29 +379,29 @@ O Filter existe para que ligar ou desligar uma origem seja uma edição de **uma
 
 Adicione um **ForEach**, ligue **HabilitaETL** →(*On success*)→ **ForEach** e renomeie para **`Carga Bronze`**. Na aba **Settings**:
 
-| Campo | Valor |
-|---|---|
-| **Sequential** | ☑ marcado *(evita estourar os limites da API SAP)* |
-| **Items** | `@activity('HabilitaETL').output.Value` |
+| Campo                | Valor                                                |
+| -------------------- | ---------------------------------------------------- |
+| **Sequential** | ☑ marcado*(evita estourar os limites da API SAP)* |
+| **Items**      | `@activity('HabilitaETL').output.Value`            |
 
 > 🔍 Atenção à diferença: o Lookup expõe `output.value` (minúsculo) e o Filter expõe **`output.Value`** (maiúsculo). Trocar um pelo outro faz o ForEach não iterar.
 
 Dentro do ForEach, adicione uma atividade **Copy data** e renomeie para `Copy Entidades`. Aba **Source**:
 
-| Campo | Valor |
-|---|---|
-| **Connection** | a conexão REST do Passo 5 (`conn_sap_s4hana_rest`) |
-| **Relative URL** | `@item().relativeUrl` |
-| **Request method** | `GET` (padrão) |
+| Campo                    | Valor                                                 |
+| ------------------------ | ----------------------------------------------------- |
+| **Connection**     | a conexão REST do Passo 5 (`conn_sap_s4hana_rest`) |
+| **Relative URL**   | `@item().relativeUrl`                               |
+| **Request method** | `GET` (padrão)                                     |
 
 Aba **Destination**:
 
-| Campo | Valor |
-|---|---|
-| **Connection** | `lh_sap_bronze` (Lakehouse) |
-| **Root folder** | `Tables` |
+| Campo                           | Valor                                                     |
+| ------------------------------- | --------------------------------------------------------- |
+| **Connection**            | `lh_sap_bronze` (Lakehouse)                             |
+| **Root folder**           | `Tables`                                                |
 | **Table (schema / nome)** | `@item().schema_destino`  /  `@item().tabela_destino` |
-| **Table action** | `Overwrite` |
+| **Table action**          | `Overwrite`                                             |
 
 ### 8.6 — Os dois notebooks, em sequência
 
@@ -408,14 +411,14 @@ Arraste duas atividades **Notebook** (aba *Activities*) para o canvas e ligue‑
 
 Em cada uma, aba **Settings**:
 
-| Atividade | Workspace | Notebook |
-|---|---|---|
-| `Load Bronze to Silver` | o workspace atual | `bronze_to_silver_dq` |
-| `Load Silver to Gold` | o workspace atual | `silver_to_gold_star_schema` |
+| Atividade                 | Workspace         | Notebook                       |
+| ------------------------- | ----------------- | ------------------------------ |
+| `Load Bronze to Silver` | o workspace atual | `bronze_to_silver_dq`        |
+| `Load Silver to Gold`   | o workspace atual | `silver_to_gold_star_schema` |
 
 > ⏱️ Cada atividade Notebook sobe uma sessão Spark. A primeira execução do dia paga o *cold start* (1–3 min); nas seguintes a sessão é reaproveitada. Encadear em série é intencional: a Gold lê o que a Silver acabou de gravar.
 
-### 8.7 — Alerta no Teams quando algo falha
+### 8.7 — (Opcional) Alerta no Teams quando algo falha
 
 Adicione a atividade **Microsoft Teams** (aba *Activities*, grupo *Notify*) e renomeie para o que preferir. Ela precisa de uma **conexão própria**: clique em **Sign in**, autorize com a sua conta e escolha o **time** e o **canal** de destino.
 
@@ -450,16 +453,16 @@ Workspace: @{pipeline().DataFactory}
 
 Este é o coração do padrão **reutilizável**: um único pipeline serve para qualquer quantidade de entidades. Basta editar o `mapeamento_entidades_sap.json` — nenhuma alteração no pipeline.
 
-| Campo do JSON | Onde entra no pipeline | Expressão exata |
-|---|---|---|
-| *(todo o array)* | Filter → **Items** | `@activity('Lista Origens').output.value` |
-| `etl` | Filter → **Condition** | `@equals(item().etl, 'Sim')` |
-| *(array filtrado)* | ForEach → **Items** | `@activity('HabilitaETL').output.Value` |
-| `relativeUrl` | Copy **Source** → Relative URL | `@item().relativeUrl` |
-| `tabela_destino` | Copy **Sink** → Table name | `@item().tabela_destino` |
-| `schema_destino` | Copy **Sink** → Schema | `@item().schema_destino` |
-| `base_url` | *(informativo)* | host fixo na conexão REST — as 8 entidades usam o mesmo host `my415189` |
-| `entidade` | *(opcional, p/ logs)* | `@item().entidade` |
+| Campo do JSON        | Onde entra no pipeline               | Expressão exata                                                            |
+| -------------------- | ------------------------------------ | --------------------------------------------------------------------------- |
+| *(todo o array)*   | Filter →**Items**             | `@activity('Lista Origens').output.value`                                 |
+| `etl`              | Filter →**Condition**         | `@equals(item().etl, 'Sim')`                                              |
+| *(array filtrado)* | ForEach →**Items**            | `@activity('HabilitaETL').output.Value`                                   |
+| `relativeUrl`      | Copy**Source** → Relative URL | `@item().relativeUrl`                                                     |
+| `tabela_destino`   | Copy**Sink** → Table name     | `@item().tabela_destino`                                                  |
+| `schema_destino`   | Copy**Sink** → Schema         | `@item().schema_destino`                                                  |
+| `base_url`         | *(informativo)*                    | host fixo na conexão REST — as 8 entidades usam o mesmo host `my415189` |
+| `entidade`         | *(opcional, p/ logs)*              | `@item().entidade`                                                        |
 
 > **OData V2 × V4:** as APIs SAP `API_*_SRV` deste hackathon são **OData V2** → a coleção de linhas fica em **`$.d.results`** e a paginação em **`$.d.__next`** (valores usados acima). Se algum serviço for **V4**, troque para **`$.value`** e **`$.'@odata.nextLink'`**.
 >
@@ -499,14 +502,14 @@ Este notebook lê as tabelas do Bronze, **escolhe e renomeia** as colunas úteis
 
 ### O que cada seção do notebook faz
 
-| Seção | O que acontece | Por que importa |
-|---|---|---|
-| **Imports** | Carrega as funções do PySpark e cria a sessão Spark | `getOrCreate()` deixa o notebook rodar também fora do Fabric |
-| **Parâmetros** | `LAKEHOUSE_BRONZE`, `LAKEHOUSE_SILVER`, `SCHEMA_*` e `PREFIXO_COLUNA_BRONZE` | É o único lugar a mudar para apontar o notebook a outros lakehouses |
-| **1. `CONFIG_ENTIDADES`** | Dicionário com, por entidade, o *de‑para* de colunas e a **chave de negócio** | Adicionar uma entidade nova é editar o dicionário, não duplicar código |
-| **2. Funções utilitárias** | `ler_bronze`, `selecionar_colunas`, `analisar_nulos`, `tratar_duplicidade` | Uma responsabilidade cada, o que deixa o loop principal curto |
-| **3. Loop principal** | Para cada entidade: lê → filtra → seleciona/renomeia → mede nulos → deduplica → grava na Silver | É aqui que a Silver é construída |
-| **4. Relatórios de DQ** | Grava `ctrl_dq_nulos` e `ctrl_dq_resumo` | Histórico da qualidade, execução a execução |
+| Seção                             | O que acontece                                                                                        | Por que importa                                                            |
+| ----------------------------------- | ----------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| **Imports**                   | Carrega as funções do PySpark e cria a sessão Spark                                                | `getOrCreate()` deixa o notebook rodar também fora do Fabric            |
+| **Parâmetros**               | `LAKEHOUSE_BRONZE`, `LAKEHOUSE_SILVER`, `SCHEMA_*` e `PREFIXO_COLUNA_BRONZE`                  | É o único lugar a mudar para apontar o notebook a outros lakehouses      |
+| **1. `CONFIG_ENTIDADES`**   | Dicionário com, por entidade, o*de‑para* de colunas e a **chave de negócio**               | Adicionar uma entidade nova é editar o dicionário, não duplicar código |
+| **2. Funções utilitárias** | `ler_bronze`, `selecionar_colunas`, `analisar_nulos`, `tratar_duplicidade`                    | Uma responsabilidade cada, o que deixa o loop principal curto              |
+| **3. Loop principal**         | Para cada entidade: lê → filtra → seleciona/renomeia → mede nulos → deduplica → grava na Silver | É aqui que a Silver é construída                                        |
+| **4. Relatórios de DQ**      | Grava `ctrl_dq_nulos` e `ctrl_dq_resumo`                                                          | Histórico da qualidade, execução a execução                           |
 
 ### A pegadinha do prefixo `d.results.`
 
@@ -524,12 +527,12 @@ Sem a crase o Spark leria `d` → `results` → `CompanyCode` como acesso a camp
 
 Antes de selecionar as colunas, o loop aplica quatro recortes — vale saber que eles existem, porque explicam a diferença de volume entre Bronze e Silver:
 
-| Filtro | Onde se aplica | Efeito |
-|---|---|---|
-| `Language == "PT"` | entidades que mapeiam `Language` | mantém só a descrição em português, evitando uma linha por idioma |
-| `CodeCompany == "1410"` | onde a coluna existir | restringe à empresa do exercício |
-| `Ledger == "0L"` | `lancamento_despesas` | mantém apenas o ledger principal (evita duplicar valores por ledger paralelo) |
-| `plano_contas == "YCOA"` | `conta_contabil` | mantém um único plano de contas |
+| Filtro                     | Onde se aplica                     | Efeito                                                                         |
+| -------------------------- | ---------------------------------- | ------------------------------------------------------------------------------ |
+| `Language == "PT"`       | entidades que mapeiam `Language` | mantém só a descrição em português, evitando uma linha por idioma         |
+| `CodeCompany == "1410"`  | onde a coluna existir              | restringe à empresa do exercício                                             |
+| `Ledger == "0L"`         | `lancamento_despesas`            | mantém apenas o ledger principal (evita duplicar valores por ledger paralelo) |
+| `plano_contas == "YCOA"` | `conta_contabil`                 | mantém um único plano de contas                                              |
 
 ### As duas regras de Data Quality
 
@@ -552,10 +555,10 @@ df_dedup = df.dropDuplicates(subset=chave_negocio)
 
 Ao final, dois relatórios são gravados na Silver em modo **`append`** — diferente das tabelas de negócio, que usam `overwrite`:
 
-| Tabela | Uma linha por | Conteúdo |
-|---|---|---|
-| `ctrl_dq_nulos` | tabela + coluna | `qtd_total`, `qtd_nulos`, `pct_nulos`, `data_execucao` |
-| `ctrl_dq_resumo` | tabela | `chave_negocio`, `qtd_linhas_bronze`, `qtd_linhas_silver`, `qtd_duplicados_removidos`, `data_execucao` |
+| Tabela             | Uma linha por   | Conteúdo                                                                                                        |
+| ------------------ | --------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `ctrl_dq_nulos`  | tabela + coluna | `qtd_total`, `qtd_nulos`, `pct_nulos`, `data_execucao`                                                   |
+| `ctrl_dq_resumo` | tabela          | `chave_negocio`, `qtd_linhas_bronze`, `qtd_linhas_silver`, `qtd_duplicados_removidos`, `data_execucao` |
 
 O `append` com `data_execucao` é o que permite comparar execuções e perceber degradação — uma coluna que começa a receber nulos, por exemplo.
 
@@ -592,15 +595,15 @@ Mais a `dim_calendario`, gerada do zero pelo próprio notebook.
 
 ### O que cada seção faz
 
-| Seção | O que acontece |
-|---|---|
-| **Parâmetros** | Lakehouses de origem/destino, `SK_DESCONHECIDO = -1` e `VALOR_DESCONHECIDO_TEXTO = "N/A"` |
-| **1. `CONFIG_DIMENSOES`** | Para cada dimensão: tabela na Silver, chave de negócio, nome da SK e nome da tabela na Gold |
-| **2. Funções** | `gerar_dim_com_sk` (cria a SK) e `gerar_linha_desconhecida` (monta a linha `-1`) |
-| **3. Dimensões** | Loop que gera cada `dim_*` com SK + membro desconhecido e grava na Gold |
-| **4. Fato** | Traz `lancamento_despesas`, faz join com cada dimensão, troca chave de negócio por SK e grava `fato_despesas` |
-| **5. Calendário** | Gera `dim_calendario` de 01/01/2026 até 31/12 do ano corrente |
-| **6. Checagem** | Conta quantas linhas da fato apontam para SK `-1` |
+| Seção                           | O que acontece                                                                                                      |
+| --------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| **Parâmetros**             | Lakehouses de origem/destino,`SK_DESCONHECIDO = -1` e `VALOR_DESCONHECIDO_TEXTO = "N/A"`                        |
+| **1. `CONFIG_DIMENSOES`** | Para cada dimensão: tabela na Silver, chave de negócio, nome da SK e nome da tabela na Gold                       |
+| **2. Funções**            | `gerar_dim_com_sk` (cria a SK) e `gerar_linha_desconhecida` (monta a linha `-1`)                              |
+| **3. Dimensões**           | Loop que gera cada `dim_*` com SK + membro desconhecido e grava na Gold                                           |
+| **4. Fato**                 | Traz `lancamento_despesas`, faz join com cada dimensão, troca chave de negócio por SK e grava `fato_despesas` |
+| **5. Calendário**          | Gera `dim_calendario` de 01/01/2026 até 31/12 do ano corrente                                                    |
+| **6. Checagem**             | Conta quantas linhas da fato apontam para SK `-1`                                                                 |
 
 ### Surrogate key: por que e como
 
@@ -677,19 +680,19 @@ Linhas da fato apontando para o membro desconhecido (SK = -1):
 
 Prints **reais e verificados**: 01–16, 18–24, 29–35 e 38 (o pipeline foi montado e **executado com sucesso**; workspace, lakehouses, JSON no Config, canvas, run Succeeded e as 8 tabelas no Bronze estão documentados com telas reais). Faltam apenas os abaixo.
 
-| Print | Tela / clique | Bloqueio |
-|---|---|---|
-| 17 | Conexão criada na lista de **Connections** | senha precisa ser digitada por um humano |
-| 36 | Seletor de arquivos do import dos `.ipynb` | seletor nativo do Windows, fora do alcance da automação |
-| 37 | **Add lakehouses** em cada notebook (Bronze+Silver / Silver+Gold) | depende do import dos notebooks |
-| 38 | Canvas completo do pipeline end‑to‑end | depende do import dos notebooks |
-| 39 | Lookup "Lista Origens" → **Settings** | — |
-| 40 | Filter "HabilitaETL" → **Settings** (`@equals(item().etl, 'Sim')`) | — |
-| 41 | ForEach "Carga Bronze" → **Settings** (Sequential ✓, Items) | — |
-| 42 | Copy Entidades → **Source** (`@item().relativeUrl`) | — |
-| 43 | Copy Entidades → **Destination** (Tables, expressões, Overwrite) | — |
-| 44 | Atividades Notebook → **Settings** com cada notebook selecionado | — |
-| 45 | Atividade Microsoft Teams → **Settings** (time, canal, mensagem) | — |
+| Print | Tela / clique                                                              | Bloqueio                                                  |
+| ----- | -------------------------------------------------------------------------- | --------------------------------------------------------- |
+| 17    | Conexão criada na lista de**Connections**                           | senha precisa ser digitada por um humano                  |
+| 36    | Seletor de arquivos do import dos `.ipynb`                               | seletor nativo do Windows, fora do alcance da automação |
+| 37    | **Add lakehouses** em cada notebook (Bronze+Silver / Silver+Gold)    | depende do import dos notebooks                           |
+| 38    | Canvas completo do pipeline end‑to‑end                                   | depende do import dos notebooks                           |
+| 39    | Lookup "Lista Origens" →**Settings**                                | —                                                        |
+| 40    | Filter "HabilitaETL" →**Settings** (`@equals(item().etl, 'Sim')`) | —                                                        |
+| 41    | ForEach "Carga Bronze" →**Settings** (Sequential ✓, Items)         | —                                                        |
+| 42    | Copy Entidades →**Source** (`@item().relativeUrl`)                | —                                                        |
+| 43    | Copy Entidades →**Destination** (Tables, expressões, Overwrite)    | —                                                        |
+| 44    | Atividades Notebook →**Settings** com cada notebook selecionado     | —                                                        |
+| 45    | Atividade Microsoft Teams →**Settings** (time, canal, mensagem)     | —                                                        |
 
 > 🗑️ Os antigos prints 24–28 (canvas e painéis da versão só‑ingestão) saíram do guia: o desenho do pipeline mudou com o Filter, os Notebooks e o Teams, e serão substituídos pelos prints 39–45.
 >
@@ -707,15 +710,15 @@ Prints **reais e verificados**: 01–16, 18–24, 29–35 e 38 (o pipeline foi m
 
 Tudo abaixo existe e **já rodou** no tenant:
 
-| Item | Onde | Situação |
-|---|---|---|
-| Lakehouses `lh_sap_bronze`, `lh_sap_silver`, `lh_sap_gold` | `ws-hackathon-sap-fabric_dev_claude` e `hack_sap` | schema `dbo`, tabelas Delta |
-| `mapeamento_entidades_sap.json` | `lh_sap_bronze/Files/Config` | 8 entidades, 7 com `etl = "Sim"` |
-| Conexão REST | Manage connections and gateways | `sap 2026 new` (host `my415189`, Basic) |
-| Pipeline só‑ingestão `pl_ingest_sap_bronze` | `ws-hackathon-sap-fabric_dev_claude` | Lookup → ForEach → Copy, **Succeeded** em 18/07/2026, 8/8 entidades |
-| **Pipeline end‑to‑end `ppl_ingest_sap`** | **`hack_sap`** | Lookup → Filter → ForEach/Copy → 2 Notebooks → Teams — é a referência deste guia |
-| Notebook `bronze_to_silver_dq` | `hack_sap` | executado; Silver gravada + `ctrl_dq_nulos` e `ctrl_dq_resumo` |
-| Notebook `silver_to_gold_star_schema` | `hack_sap` | executado; Gold com 6 dimensões + `fato_despesas` + `dim_calendario` |
+| Item                                                             | Onde                                                  | Situação                                                                              |
+| ---------------------------------------------------------------- | ----------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| Lakehouses `lh_sap_bronze`, `lh_sap_silver`, `lh_sap_gold` | `ws-hackathon-sap-fabric_dev_claude` e `hack_sap` | schema `dbo`, tabelas Delta                                                           |
+| `mapeamento_entidades_sap.json`                                | `lh_sap_bronze/Files/Config`                        | 8 entidades, 7 com `etl = "Sim"`                                                      |
+| Conexão REST                                                    | Manage connections and gateways                       | `sap 2026 new` (host `my415189`, Basic)                                             |
+| Pipeline só‑ingestão `pl_ingest_sap_bronze`                 | `ws-hackathon-sap-fabric_dev_claude`                | Lookup → ForEach → Copy,**Succeeded** em 18/07/2026, 8/8 entidades              |
+| **Pipeline end‑to‑end `ppl_ingest_sap`**               | **`hack_sap`**                                | Lookup → Filter → ForEach/Copy → 2 Notebooks → Teams — é a referência deste guia |
+| Notebook `bronze_to_silver_dq`                                 | `hack_sap`                                          | executado; Silver gravada +`ctrl_dq_nulos` e `ctrl_dq_resumo`                       |
+| Notebook `silver_to_gold_star_schema`                          | `hack_sap`                                          | executado; Gold com 6 dimensões +`fato_despesas` + `dim_calendario`                |
 
 **O Lab 1 está completo de ponta a ponta: SAP → Bronze → Silver → Gold, com alerta de falha no Teams.**
 
