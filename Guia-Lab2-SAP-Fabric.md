@@ -1,4 +1,5 @@
 # Guia passo a passo — Hackathon SAP → Microsoft Fabric
+
 ## Lab 2 — Modelo Semântico a partir da Gold + relatórios com Copilot
 
 Neste laboratório você constrói o **modelo semântico** sobre a camada Gold criada no Lab 1 e produz **medidas e um relatório** com apoio do **Copilot**.
@@ -11,22 +12,23 @@ Neste laboratório você constrói o **modelo semântico** sobre a camada Gold c
 
 ## Roteiro do laboratório
 
-| Seção | O que você entrega | Tempo |
-|---|---|---|
-| **1** Criar o modelo | `mdl_sap_despesas` em Direct Lake, com as 8 tabelas da Gold | ~10 min |
-| **Parte 1** Construir com o Copilot | relacionamentos, tabela de data, tabela de medidas e 6 medidas — via **10 prompts** | ~25 min |
-| **Parte 1b** Conferir | as três conferências que pegam o que o Copilot erra em silêncio | ~15 min |
-| **Parte 2** Relatório via Copilot | relatório gerado por sugestão e publicado no workspace | ~20 min |
+
+| Seção                             | O que você entrega                                                                 | Tempo   |
+| ----------------------------------- | ----------------------------------------------------------------------------------- | ------- |
+| **1** Criar o modelo                | `mdl_sap_despesas` em Direct Lake, com as 8 tabelas da Gold                         | ~10 min |
+| **Parte 1** Construir com o Copilot | relacionamentos, tabela de data, tabela de medidas e 6 medidas — via**10 prompts** | ~25 min |
+| **Parte 1b** Conferir               | as três conferências que pegam o que o Copilot erra em silêncio                  | ~15 min |
+| **Parte 2** Relatório via Copilot  | relatório gerado por sugestão e publicado no workspace                            | ~20 min |
 
 > 🎯 **A mudança de papel neste laboratório.** O modelo é construído **conversando**, não preenchendo formulários. O trabalho de vocês vira **revisão**: o Copilot acerta a maior parte, mas erra em silêncio — e a Parte 1b é onde esses erros aparecem.
 
 **Checklist antes de começar** — se algum item falhar, resolva antes de seguir:
 
-- [ ] O `lh_sap_gold` tem as **8 tabelas** (`fato_despesas`, `dim_calendario` e 6 dimensões)
-- [ ] A `fato_despesas` tem linhas (deve ter ~500)
-- [ ] Você é **Admin/Member/Contributor** no workspace
-- [ ] A capacidade Fabric está **ativa** (se algum item não abre, é isso)
-- [ ] O ícone do **Copilot** aparece na barra lateral esquerda
+- [ ]  O `lh_sap_gold` tem as **8 tabelas** (`fato_despesas`, `dim_calendario` e 6 dimensões)
+- [ ]  A `fato_despesas` tem linhas (deve ter ~500)
+- [ ]  Você é **Admin/Member/Contributor** no workspace
+- [ ]  A capacidade Fabric está **ativa** (se algum item não abre, é isso)
+- [ ]  O ícone do **Copilot** aparece na barra lateral esquerda
 
 ---
 
@@ -40,16 +42,17 @@ Neste laboratório você constrói o **modelo semântico** sobre a camada Gold c
 
 O notebook `silver_to_gold_star_schema` (Passo 11 do Lab 1) entrega um **esquema estrela**:
 
-| Tabela | Papel | Chave primária |
-|---|---|---|
-| `fato_despesas` | Fato — 1 linha por item de lançamento contábil (ACDOCA) | `id_lancamento` + as FKs `sk_*` |
-| `dim_empresa` | Dimensão | `sk_empresa` |
-| `dim_conta_contabil` | Dimensão | `sk_conta_contabil` |
-| `dim_segmento` | Dimensão | `sk_segmento` |
-| `dim_centro_custo` | Dimensão | `sk_centro_custo` |
-| `dim_centro_lucro` | Dimensão | `sk_centro_lucro` |
-| `dim_cliente_fornecedor` | Dimensão (papéis: Cliente/Fornecedor) | `sk_cliente_fornecedor` |
-| `dim_calendario` | Dimensão de tempo | `data_referencia` |
+
+| Tabela                   | Papel                                                      | Chave primária                 |
+| ------------------------ | ---------------------------------------------------------- | ------------------------------- |
+| `fato_despesas`          | Fato — 1 linha por item de lançamento contábil (ACDOCA) | `id_lancamento` + as FKs `sk_*` |
+| `dim_empresa`            | Dimensão                                                  | `sk_empresa`                    |
+| `dim_conta_contabil`     | Dimensão                                                  | `sk_conta_contabil`             |
+| `dim_segmento`           | Dimensão                                                  | `sk_segmento`                   |
+| `dim_centro_custo`       | Dimensão                                                  | `sk_centro_custo`               |
+| `dim_centro_lucro`       | Dimensão                                                  | `sk_centro_lucro`               |
+| `dim_cliente_fornecedor` | Dimensão (papéis: Cliente/Fornecedor)                    | `sk_cliente_fornecedor`         |
+| `dim_calendario`         | Dimensão de tempo                                         | `data_referencia`               |
 
 ```
                     dim_calendario
@@ -120,18 +123,19 @@ Na primeira solicitação que **altera** o modelo, o Copilot pede autorização:
 
 Rode um por vez e confira o resultado antes de seguir. A coluna da direita é o que você valida.
 
-| # | Prompt | O que conferir |
-|---|---|---|
-| 1 | *Crie os relacionamentos em fato e dimensões* | **7 relacionamentos**, todos `Active`, cada um ligando a SK certa dos dois lados |
-| 2 | *Marque a tabela dim_calendario com a tabela de data* | O **`Validated successfully`** verde, na coluna `data_referencia` |
-| 3 | *Crie uma tabela calculada com nome de Medidas* | A tabela aparece no painel; oculte a coluna andaime que vier com ela |
-| 4 | *Crie uma medida com total valor* | `SUM` sobre `fato_despesas[valor]` |
-| 5 | *Crie a medida total credito com base na coluna valor, filtrado pela coluna debito_credito igual a "credito"* | `CALCULATE` com o filtro em `debito_credito` |
-| 6 | *Crie a medida total debito com base na coluna valor, filtrado pela coluna debito_credito igual a "debito"* | Mesmo padrão do anterior, com `"debito"` |
-| 7 | *Crie variação MoM para total credito* | Usa a `dim_calendario` e `DIVIDE` |
-| 8 | *Crie variação % MoM para total debito* | Formatada como **percentual** |
-| 9 | *Crie medidas de total e variação de Mês sobre Mês* | Complementa o conjunto; confira se não duplicou o que já existe |
-| 10 | *Otimize o modelo e Oculte colunas desnecessárias* | As `sk_*` e as chaves técnicas ficam **ocultas** |
+
+| #  | Prompt                                                                                                        | O que conferir                                                                   |
+| -- | ------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| 1  | *Crie os relacionamentos em fato e dimensões*                                                                | **7 relacionamentos**, todos `Active`, cada um ligando a SK certa dos dois lados |
+| 2  | *Marque a tabela dim_calendario com a tabela de data*                                                         | O**`Validated successfully`** verde, na coluna `data_referencia`                 |
+| 3  | *Crie uma tabela calculada com nome de Medidas*                                                               | A tabela aparece no painel; oculte a coluna andaime que vier com ela             |
+| 4  | *Crie uma medida com total valor*                                                                             | `SUM` sobre `fato_despesas[valor]`                                               |
+| 5  | *Crie a medida total credito com base na coluna valor, filtrado pela coluna debito_credito igual a "credito"* | `CALCULATE` com o filtro em `debito_credito`                                     |
+| 6  | *Crie a medida total debito com base na coluna valor, filtrado pela coluna debito_credito igual a "debito"*   | Mesmo padrão do anterior, com`"debito"`                                         |
+| 7  | *Crie variação MoM para total credito*                                                                      | Usa a`dim_calendario` e `DIVIDE`                                                 |
+| 8  | *Crie variação % MoM para total debito*                                                                     | Formatada como**percentual**                                                     |
+| 9  | *Crie medidas de total e variação de Mês sobre Mês*                                                       | Complementa o conjunto; confira se não duplicou o que já existe                |
+| 10 | *Otimize o modelo e Oculte colunas desnecessárias*                                                           | As`sk_*` e as chaves técnicas ficam **ocultas**                                 |
 
 > 🔑 **Os prompts 5 e 6 são o coração deste modelo.** A coluna `valor` da `fato_despesas` guarda **débitos e créditos juntos**, e o ACDOCA registra as duas pontas de cada lançamento. Um `SUM(valor)` cru **se anula perto de zero** — foi exatamente o que aconteceu no Lab 3, onde o agente respondeu `R$ 0,00`. As medidas separadas de débito e crédito são o que torna o modelo utilizável.
 >
@@ -189,15 +193,16 @@ Abra **Manage relationships** (faixa **Home** → grupo *Relationships*):
 
 Confira linha por linha:
 
-| From (fato) | To (dimensão) |
-|---|---|
-| `fato_despesas (data_referencia)` | `dim_calendario (data_referencia)` |
-| `fato_despesas (sk_centro_custo)` | `dim_centro_custo (sk_centro_custo)` |
-| `fato_despesas (sk_centro_lucro)` | `dim_centro_lucro (sk_centro_lucro)` |
+
+| From (fato)                             | To (dimensão)                                   |
+| --------------------------------------- | ------------------------------------------------ |
+| `fato_despesas (data_referencia)`       | `dim_calendario (data_referencia)`               |
+| `fato_despesas (sk_centro_custo)`       | `dim_centro_custo (sk_centro_custo)`             |
+| `fato_despesas (sk_centro_lucro)`       | `dim_centro_lucro (sk_centro_lucro)`             |
 | `fato_despesas (sk_cliente_fornecedor)` | `dim_cliente_fornecedor (sk_cliente_fornecedor)` |
-| `fato_despesas (sk_conta_contabil)` | `dim_conta_contabil (sk_conta_contabil)` |
-| `fato_despesas (sk_empresa)` | `dim_empresa (sk_empresa)` |
-| `fato_despesas (sk_segmento)` | `dim_segmento (sk_segmento)` |
+| `fato_despesas (sk_conta_contabil)`     | `dim_conta_contabil (sk_conta_contabil)`         |
+| `fato_despesas (sk_empresa)`            | `dim_empresa (sk_empresa)`                       |
+| `fato_despesas (sk_segmento)`           | `dim_segmento (sk_segmento)`                     |
 
 > 🔎 **O teste rápido:** numa linha errada, o nome dentro dos parênteses **não bate** entre as duas colunas — por exemplo `fato_despesas (sk_centro_lucro)` apontando para `dim_centro_custo`. Bata o olho nas 7 antes de seguir.
 >
@@ -311,13 +316,14 @@ Com o modelo pronto e conferido, o relatório sai em poucos cliques.
 
 O Copilot resolve uns 70%. O que costuma faltar:
 
-| Ajuste | Onde |
-|---|---|
-| Eixo de tempo ordenado | `nome_mes` precisa de **Sort by column** = `mes`, senão sai Abril, Agosto, Dezembro |
-| Formato dos valores | moeda nos eixos e rótulos; unidade em milhares/milhões se os números forem grandes |
-| Ordenação de rankings | ordenar decrescente e aplicar filtro **Top N** no visual |
-| Membro `N/A` | decidir entre exibir (mostra a lacuna) ou filtrar (limpa o visual) |
-| Títulos | trocar os automáticos por linguagem de negócio |
+
+| Ajuste                  | Onde                                                                                  |
+| ----------------------- | ------------------------------------------------------------------------------------- |
+| Eixo de tempo ordenado  | `nome_mes` precisa de **Sort by column** = `mes`, senão sai Abril, Agosto, Dezembro  |
+| Formato dos valores     | moeda nos eixos e rótulos; unidade em milhares/milhões se os números forem grandes |
+| Ordenação de rankings | ordenar decrescente e aplicar filtro**Top N** no visual                               |
+| Membro`N/A`             | decidir entre exibir (mostra a lacuna) ou filtrar (limpa o visual)                    |
+| Títulos                | trocar os automáticos por linguagem de negócio                                      |
 
 > 🚨 **A `sk_segmento` é `-1` em quase toda a fato.** Ou seja, quase nenhum lançamento casou com a dimensão de segmento — no relatório isso vira uma barra gigante rotulada **`N/A`**. Não é erro do Lab 2: é sinal de que o join na Gold não encontrou correspondência. Investigue no Lab 1 antes de mostrar o relatório à turma.
 >
@@ -353,7 +359,6 @@ Resuma os principais insights de 2026 considerando Total Débito, Total Crédito
 
 > ℹ️ O modelo é **Direct Lake**: quem abrir o relatório precisa de permissão de leitura no lakehouse, ou o modelo precisa estar configurado com credencial fixa.
 
-
 ---
 
 ## Dicas e problemas comuns
@@ -377,56 +382,17 @@ Resuma os principais insights de 2026 considerando Total Débito, Total Crédito
 
 ## Glossário rápido
 
-| Termo | O que é, em uma linha |
-|---|---|
-| **Modelo semântico** | A camada que traduz tabelas em conceitos de negócio: relacionamentos, medidas, hierarquias e nomes amigáveis |
-| **Direct Lake** | Modo em que o modelo lê os arquivos Delta do lakehouse direto, sem importar dados nem agendar refresh |
-| **Surrogate key (SK)** | Chave inteira criada pelo ETL para ligar fato e dimensão, em vez do código do sistema de origem |
-| **Membro desconhecido** | Linha artificial na dimensão (`SK = -1`, textos `"N/A"`) que recebe os lançamentos sem correspondência |
-| **Cardinalidade `*:1`** | Muitos para um: muitas linhas da fato apontam para uma linha da dimensão |
-| **Direção do filtro** | Por onde o filtro se propaga. *Única* = só da dimensão para a fato |
-| **Medida** | Cálculo em DAX avaliado no contexto do visual (ex. soma que respeita os filtros aplicados) |
-| **Display folder** | Pasta que organiza medidas e colunas no painel de campos |
-| **Role-playing dimension** | Uma dimensão usada em mais de um papel (ex. o mesmo parceiro como Cliente e como Fornecedor) |
 
----
-
-## Prints a capturar
-
-| # | Tela | Situação |
-|---|---|---|
-| 1 | `lh_sap_gold` → **New semantic model** | ✅ `lab2-01.png` |
-| 2 | Diálogo *New semantic model* com Select all e Confirm | ✅ `lab2-02.png` |
-| 3 | **Model view** com as 8 tabelas | ✅ `lab2-03.png` |
-| 4 | Canvas em fila alfabética, fato fora da tela | ✅ `lab2-04.png` |
-| 5 | Diagrama organizado, fato ao centro | ✅ `lab2-05.png` |
-| 6 | Tela de consentimento *Allow Copilot to make changes* | ✅ `lab2-14.png` |
-| 7 | Resposta do Copilot com DAX e formatação `R$` | ✅ `lab2-15.png` |
-| 8 | **Manage relationships** com os 7 relacionamentos | ✅ `lab2-10.png` |
-| 9 | Relacionamento correto — colunas iguais nas duas pontas | ✅ `lab2-08.png` |
-| 10 | Armadilha da **coluna herdada** | ✅ `lab2-07.png` |
-| 11 | Armadilha da **cardinalidade invertida** | ✅ `lab2-09.png` |
-| 12 | Menu **Mark as date table** | ✅ `lab2-11.png` |
-| 13 | *Mark as a date table* com `Validated successfully` | ✅ `lab2-12.png` |
-| 14 | Aba **Model** → ⋯ → **New calculated table** | ✅ `lab2-16.png` |
-| 15 | Tabela de medidas com o campo **Home table** | ✅ `lab2-17.png` |
-| 16 | **Properties** da coluna `valor` com Currency | ✅ `lab2-13.png` |
-| 17 | Os 10 prompts do Copilot em sequência, com as respostas | pendente |
-| 18 | **New report** → **Copilot** → *Suggest content for this report* | pendente |
-| 19 | Sugestão escolhida + **Create**, e o relatório gerado | pendente |
-
-## Estado atual no tenant
-
-| Item | Onde | Situação |
-|---|---|---|
-| `mdl_sap_despesas` | `hack_sap` | ✅ criado em Direct Lake com as 8 tabelas da Gold |
-| Relacionamentos | `mdl_sap_despesas` | ✅ **7 de 7**, todos Active, colunas e cardinalidade conferidas |
-| `dim_calendario` como tabela de data | `mdl_sap_despesas` | ✅ marcada em `data_referencia`, *Validated successfully* |
-| Tabela de medidas | `mdl_sap_despesas` | ✅ criada, com as medidas movidas via **Home table** |
-| Medidas | `mdl_sap_despesas` | 🟡 5 criadas no primeiro roteiro. **Faltam `Total Débito` e `Total Crédito`** — os prompts 5 e 6 |
-| Formato da coluna `valor` | `mdl_sap_despesas` | 🟡 `Currency` + `Currency General`, decimais `Auto` |
-| Relatório | — | ⏳ Parte 2 pendente |
-
-> 🚨 **A pendência que importa: `Total Débito` e `Total Crédito`.** O primeiro roteiro criou `Total Despesas`, que soma a coluna `valor` inteira — débitos **e** créditos juntos. Como o ACDOCA registra as duas pontas de cada lançamento, o total **se anula perto de zero**. Isso foi confirmado no Lab 3, onde o agente respondeu `R$ 0,00`. Os prompts **5** e **6** resolvem, e são pré-requisito para o roteiro de testes do Lab 3.
+| Termo                      | O que é, em uma linha                                                                                         |
+| -------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| **Modelo semântico**      | A camada que traduz tabelas em conceitos de negócio: relacionamentos, medidas, hierarquias e nomes amigáveis |
+| **Direct Lake**            | Modo em que o modelo lê os arquivos Delta do lakehouse direto, sem importar dados nem agendar refresh         |
+| **Surrogate key (SK)**     | Chave inteira criada pelo ETL para ligar fato e dimensão, em vez do código do sistema de origem              |
+| **Membro desconhecido**    | Linha artificial na dimensão (`SK = -1`, textos `"N/A"`) que recebe os lançamentos sem correspondência      |
+| **Cardinalidade `*:1`**    | Muitos para um: muitas linhas da fato apontam para uma linha da dimensão                                      |
+| **Direção do filtro**    | Por onde o filtro se propaga.*Única* = só da dimensão para a fato                                           |
+| **Medida**                 | Cálculo em DAX avaliado no contexto do visual (ex. soma que respeita os filtros aplicados)                    |
+| **Display folder**         | Pasta que organiza medidas e colunas no painel de campos                                                       |
+| **Role-playing dimension** | Uma dimensão usada em mais de um papel (ex. o mesmo parceiro como Cliente e como Fornecedor)                  |
 
 *Documento gerado para a equipe do hackathon — Lab 2.*
