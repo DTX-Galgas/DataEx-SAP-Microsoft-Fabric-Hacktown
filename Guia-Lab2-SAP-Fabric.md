@@ -300,17 +300,53 @@ Organize: colapse as dimensões pelo chevron, arraste a fato para o centro pela 
 
 ---
 
+## O modelo depois dos 10 prompts
+
+Antes de partir para o relatório, este é o resultado esperado:
+
+![Modelo mdl_fico_sap depois dos 10 prompts do Copilot](imagens/lab2-18.png)
+
+**1** O modelo — nesta execução, **`mdl_fico_sap`**. **2** A tabela **`Medidas`** no painel Data, com **`Total Credito`**, **`Total Crédito MoM %`**, **`Total Debito`** e **`Total Debito MoM %`** — exatamente o que os prompts 3 a 9 produzem. **3** O diagrama com as tabelas ligadas à fato. **4** A resposta do Copilot ao prompt 10, listando as colunas técnicas a ocultar. **5** O **New report**, que abre a Parte 2.
+
+> ✅ **As quatro medidas são o entregável desta parte.** `Total Debito` e `Total Credito` separam as duas naturezas do lançamento; as duas de `MoM %` dão a variação mês a mês. É esse conjunto que o roteiro de 11 prompts do Lab 3 exercita.
+>
+> 💡 **Repare no `Dummy` na tabela `Medidas`.** É a coluna andaime da tabela calculada, com um triângulo de aviso ao lado. Oculte-a (**Is hidden = Yes**) — ela existe só para a tabela poder existir.
+>
+> ℹ️ **O prompt 10 devolve uma lista, não uma ação pronta.** Na resposta capturada, o Copilot listou as `sk_*` e as colunas de partição (`ano_particao`, `mes_particao`) e ofereceu duas opções: ocultar também o `id_lancamento`, ou ativar `discourageImplicitMeasures = true` no modelo. Ou seja, ele **propõe** e espera sua confirmação — leia antes de responder "pode aplicar tudo".
+>
+> ⚠️ **Confira o nome do seu modelo.** Este guia usa `mdl_fico_sap` nos prints; se você nomeou diferente, os prompts funcionam igual — só o nome na tela muda.
+
+---
+
 ## Parte 2 — Relatório via Copilot
 
 Com o modelo pronto e conferido, o relatório sai em poucos cliques.
 
-1. Na faixa do editor do modelo, clique em **New report**.
-2. No relatório, clique no botão **Copilot**.
-3. Escolha **Suggest content for this report** (*Suggest a New Content*).
-4. Escolha uma das sugestões e pressione **Create**.
-5. Converse com o Copilot fazendo perguntas sobre os dados.
+**1** No editor do modelo, abra o menu **File**. **2** Clique em **Create new report**.
+
+![Menu File → Create new report](imagens/lab2-19.png)
+
+> 💡 **Dois caminhos para o mesmo lugar.** Existe um **New report** na faixa **Home** (grupo *Explore*) e o **Create new report** no menu **File**. Levam ao mesmo editor. O do menu File é mais confiável quando o botão da faixa não responde.
+>
+> ℹ️ **Abre numa aba nova.** O editor do modelo fica aberto atrás, o que é útil: se faltar uma medida, você volta, cria e recarrega o relatório.
+
+O editor de relatório abre com o **Copilot já aberto** à direita:
+
+![Editor de relatório com o painel do Copilot e as três opções](imagens/lab2-20.png)
+
+**1** O botão **Copilot** na faixa, para reabrir o painel se você fechar. **2** **Create a new report page** — monta uma página inteira. **3** **Suggest content for a new report page** — é o *Suggest a New Content*, o caminho deste laboratório. **4** **Answer a question about my data** — responde sem criar visual. **5** A caixa *"Describe the report you want to create or ask a question"*.
+
+Clique em **Suggest content for a new report page**, escolha uma das sugestões e pressione **Create**.
 
 `[print pendente]`
+
+> 🎯 **A diferença entre as três opções importa.** *Create a new report page* espera que **você** descreva o que quer. *Suggest content* inverte: o Copilot **lê o modelo e propõe** páginas com base no que encontrou — medidas, dimensões, tabela de data. *Answer a question* nem cria visual, só responde.
+>
+> 💡 **É aqui que a curadoria da Parte 1 se paga.** As sugestões saem do que o modelo expõe. Com `Total Debito`, `Total Credito` e as duas de `MoM %` na tabela `Medidas`, e as `sk_*` ocultas, as propostas vêm sobre conceitos de negócio. Num modelo cru, o Copilot sugere gráficos de chave técnica.
+>
+> ⚠️ **O relatório nasce como `Untitled report`** — veja na barra lateral esquerda. Ele **não está salvo**. Renomeie e salve antes de fechar a aba, senão perde o trabalho.
+
+> 💡 **O `Suggest content` é diferente de descrever o relatório.** Em vez de você dizer o que quer, o Copilot **lê o modelo e propõe** páginas inteiras com base no que encontrou — medidas, dimensões e a tabela de data. Quanto melhor a curadoria da Parte 1, melhores as sugestões. É a prova prática de que modelagem boa se paga.
 
 ### O que ajustar no rascunho
 
@@ -353,13 +389,18 @@ Resuma os principais insights de 2026 considerando Total Débito, Total Crédito
 >
 > Esses são os números que têm que aparecer. É a mesma validação que o Lab 3 usa — e é ela que revelou o `R$ 0,00` do agente.
 
-### Publicar
+### Salvar o dashboard depois de criado
 
-**Save**, escolha o workspace e o nome (ex. `rpt_despesas_sap`). Para compartilhar, use **Manage access** no workspace ou publique um **App**.
+O relatório gerado pelo Copilot **não está salvo**. **1** Abra o menu **File**. **2** **Save — Save this report**, para salvar no lugar. **3** Ou **Save as — Save a copy of this report**, para guardar uma versão e continuar experimentando na outra. **4** Há também o botão **Save** direto na faixa, no canto superior direito.
 
-> ℹ️ O modelo é **Direct Lake**: quem abrir o relatório precisa de permissão de leitura no lakehouse, ou o modelo precisa estar configurado com credencial fixa.
+![Menu File do relatório com Save e Save as](imagens/lab2-21.png)
 
----
+O menu traz ainda **Print** (imprime a página atual) e **Export to PowerPoint** — este último útil para levar o resultado do laboratório a uma apresentação.
+
+> ⚠️ **Salve antes de fechar a aba.** O relatório aparece como **`Untitled report`** na barra lateral até o primeiro Save. Fechar a aba antes disso perde tudo o que o Copilot gerou.
+>
+> 💡 **Use `Save as` para versionar.** Antes de mexer no rascunho do Copilot, salve uma cópia com o nome original. Se os ajustes piorarem o resultado, você tem de onde voltar.
+
 
 ## Dicas e problemas comuns
 
@@ -370,6 +411,8 @@ Resuma os principais insights de 2026 considerando Total Débito, Total Crédito
 - **Uma categoria aparece como `N/A` com valor alto:** é o membro desconhecido (`SK = -1`) — muitos lançamentos sem correspondência na dimensão. Investigue no Lab 1, seção "checagem final" do Passo 11.
 - **Total de despesas parece dobrado:** verifique se o Lab 1 filtrou `Ledger = "0L"`. Sem esse filtro, o ACDOCA traz o mesmo lançamento em ledgers paralelos.
 - **Soma de anos no visual:** a coluna `ano` está com *Summarize* ativo. Desmarque.
+- **O Copilot gera visuais com `Sum of valor` e o total dá zero:** ele usou **medida implícita** sobre a coluna crua, e débitos e créditos se anulam. Ative **`discourageImplicitMeasures = true`** no modelo (opção que o prompt 10 oferece) e gere o relatório de novo.
+- **Visual com *"This might be caused by a capacity or license issue"*:** é capacidade ou licença, não modelagem. Confira o estado da capacidade Fabric.
 - **O item não abre / "capacity is currently not available":** a capacidade Fabric está pausada. Nada do laboratório funciona até ela voltar.
 - **"Error Applying Change" ao mudar uma propriedade:** a capacidade caiu no meio da edição. A alteração **não** foi salva — o painel continua mostrando o valor antigo. Espere a capacidade voltar e refaça. Confira também as alterações imediatamente anteriores, que podem ter ficado pela metade.
 - **"Sorry, we couldn't find that semantic model" logo depois de criar:** corrida entre criação e abertura. Recarregue a página.
