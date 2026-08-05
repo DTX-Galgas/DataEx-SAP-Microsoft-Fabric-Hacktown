@@ -563,30 +563,32 @@ O editor do agente tem um painel de conversa e ele **funciona em `Draft`** — n
 
 Os 11 prompts abaixo são o roteiro oficial de validação. Eles vão de agregado simples até gráfico com eixo definido, e cobrem débito, crédito e comparação entre os dois.
 
-| # | Prompt | O que validar na resposta |
-|---|---|---|
-| 1 | *Qual foi o valor total de débitos em 2026?* | O número bate com a fonte. **É o teste-base**: se este falhar, pare e corrija antes de seguir |
-| 2 | *Como evoluiu o Total Débito ao longo dos meses de 2026?* | 12 meses (ou os meses com dado), em ordem cronológica — não alfabética |
-| 3 | *Detalhar débitos de fevereiro por conta contábil* | Filtro de mês aplicado + nomes de conta legíveis, não códigos |
-| 4 | *Analisar débitos por centro de custo em fevereiro* | Mesmo filtro do anterior, agora por centro de custo |
-| 5 | *Detalhe mês a mês os débitos do centro de custo Back Office-(BR) no ano 2026* | Ele encontra o centro de custo **pelo nome**, com parêntese e hífen |
-| 6 | *Gere um gráfico de linha do tempo até Julho de 2026* | Produz **visual**, respeita o corte em julho e entende o "até" |
-| 7 | *Compare o Total Débito e o Total Crédito por centro de lucro em 2026.* | **As duas medidas na mesma resposta**, por centro de lucro |
-| 8 | *Detalhar créditos por centro de lucro em 2026* | Só créditos — confirma que ele separa as duas naturezas |
-| 9 | *Gere um gráfico de colunas com a informação* | Entende **"a informação"** como o resultado anterior — testa memória de contexto |
-| 10 | *Gere um gráfico de linha. Detalhe mês a mês como aconteceram os créditos no centro de custo Servs.compartilhados (YB600) no ano de 2026, com valor crédito no eixo x e valor crédito acumulado no eixo y* | O mais exigente: identifica o centro pelo **código YB600**, calcula **acumulado** e respeita os eixos pedidos |
-| 11 | *Resuma os principais insights financeiros de 2026 considerando Total Débito, Total Crédito e suas variações MoM.* | Texto analítico com números que **batem** com os prompts anteriores, e MoM (mês a mês) coerente |
+
+| #  | Prompt                                                                                                                                                                                                           | O que validar na resposta                                                                                     |
+| -- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| 1  | *Qual foi o valor total de débitos em 2026?*                                                                                                                                                                    | O número bate com a fonte.**É o teste-base**: se este falhar, pare e corrija antes de seguir                |
+| 2  | *Como evoluiu o Total Débito ao longo dos meses de 2026?*                                                                                                                                                       | 12 meses (ou os meses com dado), em ordem cronológica — não alfabética                                    |
+| 3  | *Detalhar débitos de fevereiro por conta contábil*                                                                                                                                                             | Filtro de mês aplicado + nomes de conta legíveis, não códigos                                             |
+| 4  | *Analisar débitos por centro de custo em fevereiro*                                                                                                                                                             | Mesmo filtro do anterior, agora por centro de custo                                                           |
+| 5  | *Detalhe mês a mês os débitos do centro de custo Back Office-(BR) no ano 2026*                                                                                                                                | Ele encontra o centro de custo**pelo nome**, com parêntese e hífen                                          |
+| 6  | *Gere um gráfico de linha do tempo até Julho de 2026*                                                                                                                                                          | Produz**visual**, respeita o corte em julho e entende o "até"                                                |
+| 7  | *Compare o Total Débito e o Total Crédito por centro de lucro em 2026.*                                                                                                                                        | **As duas medidas na mesma resposta**, por centro de lucro                                                    |
+| 8  | *Detalhar créditos por centro de lucro em 2026*                                                                                                                                                                 | Só créditos — confirma que ele separa as duas naturezas                                                    |
+| 9  | *Gere um gráfico de colunas com a informação*                                                                                                                                                                 | Entende**"a informação"** como o resultado anterior — testa memória de contexto                           |
+| 10 | *Gere um gráfico de linha. Detalhe mês a mês como aconteceram os créditos no centro de custo Servs.compartilhados (YB600) no ano de 2026, com valor crédito no eixo x e valor crédito acumulado no eixo y* | O mais exigente: identifica o centro pelo**código YB600**, calcula **acumulado** e respeita os eixos pedidos |
+| 11 | *Resuma os principais insights financeiros de 2026 considerando Total Débito, Total Crédito e suas variações MoM.*                                                                                           | Texto analítico com números que**batem** com os prompts anteriores, e MoM (mês a mês) coerente            |
 
 **Como ler esse roteiro.** Os prompts sobem de dificuldade de propósito:
 
-| Prompts | O que testam |
-|---|---|
-| 1 a 4 | agregação e filtro — o básico tem que estar certo |
-| 5 e 10 | localizar dimensão por **nome** (`Back Office-(BR)`) e por **código** (`YB600`) |
-| 6, 9 e 10 | geração de **visual**, incluindo eixos definidos pelo usuário |
-| 7 e 8 | separar e comparar **débito × crédito** |
-| 9 | **memória de contexto** — "a informação" se refere à resposta anterior |
-| 11 | síntese, e consistência com tudo o que veio antes |
+
+| Prompts   | O que testam                                                                     |
+| --------- | -------------------------------------------------------------------------------- |
+| 1 a 4     | agregação e filtro — o básico tem que estar certo                            |
+| 5 e 10    | localizar dimensão por**nome** (`Back Office-(BR)`) e por **código** (`YB600`) |
+| 6, 9 e 10 | geração de**visual**, incluindo eixos definidos pelo usuário                  |
+| 7 e 8     | separar e comparar**débito × crédito**                                        |
+| 9         | **memória de contexto** — "a informação" se refere à resposta anterior      |
+| 11        | síntese, e consistência com tudo o que veio antes                              |
 
 > 🎯 **O prompt 1 é o portão.** Se o total de débitos de 2026 não bater com a fonte, os outros dez não importam. Confira antes de tudo:
 >
@@ -712,37 +714,5 @@ Pergunte no canal e **compare com a fonte**. É esta validação que fecha o lab
 
 ---
 
-## Prints a capturar
-
-
-| #  | Tela                                                               | Situação      |
-| -- | ------------------------------------------------------------------ | --------------- |
-| 1  | **New item → All items → Analyze and train data → Data agent**  | ✅`lab3-01.png` |
-| 2  | Diálogo**Create data agent** com o nome preenchido                | ✅`lab3-02.png` |
-| 3  | Editor do agente —**Build your data agent**                       | ✅`lab3-03.png` |
-| 3b | **Add a data source** → OneLake catalog → `mdl_sap_despesas`     | ✅`lab3-04.png` |
-| 4  | Explorer com as 9 tabelas marcadas + painel de teste               | ✅`lab3-05.png` |
-| 5  | Editor**Agent instructions** — barra Markdown, contador e preview | ✅`lab3-06.png` |
-| 5b | Instruções preenchidas com o texto final                         | pendente        |
-| 6  | Teste no painel — resposta**incorreta** (`R$ 0,00`)               | ✅`lab3-07.png` |
-| 6b | Teste com resposta correta, após corrigir                         | pendente        |
-| 7  | Teste negativo — agente recusando pergunta fora do escopo         | pendente        |
-| 8  | Tela de**publicação** do agente                                  | pendente        |
-| 9  | **Permissões de acesso** definidas                                | pendente        |
-| 10 | Agente adicionado como app no**canal do Teams**                    | pendente        |
-| 11 | Pergunta em linguagem natural respondida no Teams                  | pendente        |
-
----
-
-## Estado atual no tenant
-
-
-| Item                   | Onde               | Situação                                                                                                                             |
-| ---------------------- | ------------------ | -------------------------------------------------------------------------------------------------------------------------------------- |
-| Recurso**Data agent**  | tenant             | ✅ disponível em*Analyze and train data*                                                                                              |
-| `agt_sap_despesas`     | `hack_sap` (raiz)  | ✅**criado** e ligado ao `mdl_sap_despesas`, com as 9 tabelas liberadas. Estado `Draft`. Mover para `005 Agente` com **⋯ → Move to** |
-| Instruções do agente | `agt_sap_despesas` | 🟡 editor aberto; caixa ainda com o**template de 358 caracteres** que precisa ser substituído                                         |
-| Primeiro teste         | `agt_sap_despesas` | ⚠️ respondeu**`R$ 0,00`** — investigar `debito_credito` e a medida `Total Despesas`                                                 |
-| Publicação e Teams   | —                 | ⏳ pendente (seções 3 e 4)                                                                                                           |
 
 *Documento gerado para a equipe do hackathon — Lab 3.*
