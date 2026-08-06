@@ -285,56 +285,6 @@ O editor de relatório abre com o **Copilot já aberto** à direita:
 
 Clique em **Suggest content for a new report page**, escolha uma das sugestões e pressione **Create**.
 
-`[print pendente]`
-
-> 🎯 **A diferença entre as três opções importa.** *Create a new report page* espera que **você** descreva o que quer. *Suggest content* inverte: o Copilot **lê o modelo e propõe** páginas com base no que encontrou — medidas, dimensões, tabela de data. *Answer a question* nem cria visual, só responde.
->
-> 💡 **É aqui que a curadoria da Parte 1 se paga.** As sugestões saem do que o modelo expõe. Com `Total Debito`, `Total Credito` e as duas de `MoM %` na tabela `Medidas`, e as `sk_*` ocultas, as propostas vêm sobre conceitos de negócio. Num modelo cru, o Copilot sugere gráficos de chave técnica.
->
-> ⚠️ **O relatório nasce como `Untitled report`** — veja na barra lateral esquerda. Ele **não está salvo**. Renomeie e salve antes de fechar a aba, senão perde o trabalho.
-
-> 💡 **O `Suggest content` é diferente de descrever o relatório.** Em vez de você dizer o que quer, o Copilot **lê o modelo e propõe** páginas inteiras com base no que encontrou — medidas, dimensões e a tabela de data. Quanto melhor a curadoria da Parte 1, melhores as sugestões. É a prova prática de que modelagem boa se paga.
-
-### O que ajustar no rascunho
-
-O Copilot resolve uns 70%. O que costuma faltar:
-
-
-| Ajuste                  | Onde                                                                                  |
-| ----------------------- | ------------------------------------------------------------------------------------- |
-| Eixo de tempo ordenado  | `nome_mes` precisa de **Sort by column** = `mes`, senão sai Abril, Agosto, Dezembro  |
-| Formato dos valores     | moeda nos eixos e rótulos; unidade em milhares/milhões se os números forem grandes |
-| Ordenação de rankings | ordenar decrescente e aplicar filtro**Top N** no visual                               |
-| Membro`N/A`             | decidir entre exibir (mostra a lacuna) ou filtrar (limpa o visual)                    |
-| Títulos                | trocar os automáticos por linguagem de negócio                                      |
-
-> 🚨 **A `sk_segmento` é `-1` em quase toda a fato.** Ou seja, quase nenhum lançamento casou com a dimensão de segmento — no relatório isso vira uma barra gigante rotulada **`N/A`**. Não é erro do Lab 2: é sinal de que o join na Gold não encontrou correspondência. Investigue no Lab 1 antes de mostrar o relatório à turma.
->
-> ⚠️ **Não peça nada por dia.** A `data_referencia` é sempre dia `01` — a granularidade é **mensal**.
->
-> ⚠️ **Cartões de variação anual vão ficar vazios**, porque o calendário começa em 2026 e não há 2025 para comparar. Use variação **MoM**, não YoY.
-
-### Perguntas para explorar com o Copilot
-
-Sugestões que exercitam o que foi construído:
-
-```
-Qual foi o valor total de débitos em 2026?
-Como evoluiu o Total Débito ao longo dos meses de 2026?
-Compare o Total Débito e o Total Crédito por centro de lucro em 2026.
-Quais os 10 centros de custo com maior débito?
-Resuma os principais insights de 2026 considerando Total Débito, Total Crédito e as variações MoM.
-```
-
-> ✅ **Valide contra a fonte.** Antes de confiar em qualquer número, rode no SQL analytics endpoint do `lh_sap_gold`:
->
-> ```sql
-> SELECT debito_credito, SUM(valor) AS total, COUNT(*) AS linhas
-> FROM dbo.fato_despesas
-> GROUP BY debito_credito;
-> ```
->
-> Esses são os números que têm que aparecer. É a mesma validação que o Lab 3 usa — e é ela que revelou o `R$ 0,00` do agente.
 
 ### Salvar o dashboard depois de criado
 
