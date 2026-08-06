@@ -246,59 +246,6 @@ No painel: **1** o botão **Mark as a date table** em **On**. **2** **Choose a d
 >
 > 🚨 **A `dim_calendario` começa em 01/01/2026.** Não existe 2025 no modelo. Qualquer medida de ano anterior vai voltar **vazia** — e isso é ausência de base de comparação, não zero. As variações **MoM** dos prompts 7 a 9 funcionam; as **YoY**, não.
 
-### Conferência 3 — Formatos e a tabela de medidas
-
-A `_medidas` (ou `Medidas`, conforme o Copilot nomeou) com as medidas dentro, e o campo **Home table** apontando para ela:
-
-![Medidas na tabela dedicada, com o campo Home table](imagens/lab2-17.png)
-
-**1** O **Home table** da medida selecionada. **2** No painel **Data**, a tabela concentra as medidas e sobe ao topo da lista pelo `_`. **3** O card no diagrama. **4** O DAX na barra de fórmula.
-
-O caminho manual, se precisar criar você mesmo: aba **Model** do painel Data → **⋯** em *Tables* → **New calculated table**.
-
-![Aba Model → três pontos em Tables → New calculated table](imagens/lab2-16.png)
-
-**1** A aba **Model**. **2** Os três pontos em *Tables*. **3** **New calculated table**. **4** As contagens do modelo — `Measures`, `Relationships`, `Tables`.
-
-```dax
-_medidas = ROW("placeholder", BLANK())
-```
-
-> ✅ **Direct Lake aceita tabela calculada.** O menu traz **New calculated table** habilitado.
->
-> 💡 **A aba Model é o mapa.** Ela lista *Measures*, *Relationships*, *Tables* e outros com a contagem ao lado — a forma mais rápida de responder "quantas medidas tenho?" e "os 7 relacionamentos estão lá?".
->
-> ⚠️ **Oculte a coluna andaime.** A tabela calculada nasce com uma coluna (`Column` ou `placeholder`) que serve só para a tabela existir. Marque **Is hidden = Yes**, senão alguém arrasta para um visual e soma nada.
->
-> 💡 **Mover medida não quebra nada.** Em DAX a referência é `[Nome da Medida]`, sem o nome da tabela.
-
-Para o formato da coluna de valor, selecione `fato_despesas[valor]` no painel **Data** e ajuste em **Properties → Formatting**:
-
-![Properties da coluna valor — Format Currency](imagens/lab2-13.png)
-
-**1** A coluna selecionada. **2** `Data type = Decimal number`. **3** `Format = Currency`. **4** `Thousands separator = Yes`. **5** `Decimal places`. **6** `Currency format`.
-
-> 🚨 **`Decimal places` e `Currency format` se atropelam.** Escolher um *Currency format* zera o `Decimal places` para `Auto`; digitar um `Decimal places` força o *Currency format* de volta ao padrão da cultura do modelo — que aqui é **en-US**, ou seja **`$ American English`**. Não dá para ter `Currency General` **e** 2 decimais fixos pela interface.
->
-> 💡 **Atalho:** peça ao **Copilot**. Ele escreve format string customizado com `R$` e 2 decimais, o que a interface não permite.
->
-> ⚠️ **Não deixe em `$ American English`.** Os dados são em **BRL** — a `fato_despesas` tem uma coluna `moeda` com `BRL`. Um `$` na frente do valor engana quem lê.
-
-### Se o diagrama estiver embaralhado
-
-O modelo nasce com as tabelas **em fila alfabética** e a fato na ponta, fora da tela:
-
-![Canvas recém-criado — a fato na ponta direita, fora do enquadramento](imagens/lab2-04.png)
-
-**1** A `fato_despesas` no fim da fila. **2** O chevron que **colapsa** cada card. **3** A barra de rolagem mostrando o quanto passa da tela.
-
-Organize: colapse as dimensões pelo chevron, arraste a fato para o centro pela barra de título, distribua as dimensões em volta e enquadre com o zoom.
-
-![Diagrama organizado — fato ao centro, dimensões em volta, zoom em 80%](imagens/lab2-05.png)
-
-> 💡 **Por que vale o tempo.** Com a fato no centro, um relacionamento faltando aparece como uma dimensão **solta**, sem linha. Na fila alfabética o erro passa batido — e só aparece quando um visual mostra o mesmo total para todas as categorias.
-
----
 
 ## O modelo depois dos 10 prompts
 
