@@ -132,7 +132,7 @@ Rode um por vez e confira o resultado antes de seguir. A coluna da direita é o 
 | 4  | *Crie uma medida com total valor*                                                                             | `SUM` sobre `fato_despesas[valor]`                                               |
 | 5  | *Crie a medida total credito com base na coluna valor, filtrado pela coluna debito_credito igual a "credito"* | `CALCULATE` com o filtro em `debito_credito`                                     |
 | 6  | *Crie a medida total debito com base na coluna valor, filtrado pela coluna debito_credito igual a "debito"*   | Mesmo padrão do anterior, com`"debito"`                                         |
-| 7  | *Crie variação MoM para total credito*                                                                      | Usa a`dim_calendario` e `DIVIDE`                                                 |
+| 7  | *Crie variação % MoM para total credito*                                                                   | Usa a`dim_calendario` e `DIVIDE`                                                 |
 | 8  | *Crie variação % MoM para total debito*                                                                     | Formatada como**percentual**                                                     |
 | 9  | *Crie medidas de total e variação de Mês sobre Mês*                                                       | Complementa o conjunto; confira se não duplicou o que já existe                |
 | 10 | *Otimize o modelo e Oculte colunas desnecessárias*                                                           | As`sk_*` e as chaves técnicas ficam **ocultas**                                 |
