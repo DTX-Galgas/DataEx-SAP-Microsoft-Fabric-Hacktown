@@ -179,7 +179,7 @@ RETURN
 
 ---
 
-## Parte 1b — Conferir o que o Copilot fez
+## Parte 1 — Conferir o que o Copilot fez
 
 Esta é a parte que não se delega. O Copilot acerta muito, mas erra em silêncio — e as três conferências abaixo pegam os erros que aparecem na prática.
 
